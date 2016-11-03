@@ -17,13 +17,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:23.4.0'
+    // Code below can throw an error -> execution failed for task 'app:transformClassesWithDexForDebug'
+    //compile 'com.google.android.gms:play-services:9.8.0'
+    // Instead use this if your application only needs google maps to use Google Play Services.
+    // https://developers.google.com/android/guides/setup
+    compile 'com.google.android.gms:play-services-maps:9.8.0'
     testCompile 'junit:junit:4.12'
 }
