@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -17,6 +18,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class LocationTracker implements LocationListener {
 
+    GoogleMap map;
     Context context;
     double latitude, longitude;
     LocationManager lm;
@@ -30,64 +32,8 @@ public class LocationTracker implements LocationListener {
 
     }
 
-   /** public Location getLocationManually() {
-
-        boolean isGpsEnabled;
-        boolean isNetworkEnabled;
-        try {
-            lm= (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
-
-            isGpsEnabled= lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            isNetworkEnabled= lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-            if (!isGpsEnabled && !isNetworkEnabled) {
-                // Do nothing
-            }else {
-                if (isGpsEnabled) {
-                    lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
-                    if (lm != null) {
-                        loc= lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (loc != null) {
-                            latitude= loc.getLatitude();
-                            longitude= loc.getLongitude();
-                        }
-                    }
-                }
-
-                if (isNetworkEnabled) {
-                    lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
-                    if (lm != null) {
-                        loc= lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        if (loc != null) {
-                            latitude= loc.getLatitude();
-                            longitude= loc.getLongitude();
-                        }
-                    }
-                }
-            }
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Lat Long object for current location
-        LatLng latLng= new LatLng(latitude,longitude);
-
-        // Show current location in google map
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-
-        // Zoom in
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(20));
-        // Add Marker
-        googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude,longitude)).title("You are here!"));
-
-        Log.d(TAG,String.valueOf(loc));
-        return loc;
-
-    }  */
-
-    // Getting users location
-  public void getUsersLocationByCriteria() {
-
+    // Getting users location by criteria
+  public void getUsersLocationByCriteria(GoogleMap googleMap) {
 
             lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             criteria = new Criteria();
@@ -101,6 +47,11 @@ public class LocationTracker implements LocationListener {
       try {
             latitude=loc.getLatitude();
             longitude= loc.getLongitude();
+
+          // Setting markers
+          googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude,longitude)).title("You are here"));
+
+
             Log.d(TAG,"Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude));
             Toast.makeText(context,"Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude),Toast.LENGTH_LONG).show();
         }catch (NullPointerException e) {
@@ -113,6 +64,14 @@ public class LocationTracker implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+       try {
+           LatLng latLng= new LatLng(latitude,longitude);
+           CameraUpdate cameraUpdate= CameraUpdateFactory.newLatLngZoom(latLng,10);
+           map.animateCamera(cameraUpdate);
+           lm.removeUpdates(this);
+       }catch (Exception e) {
+           e.printStackTrace();
+       }
 
     }
 
