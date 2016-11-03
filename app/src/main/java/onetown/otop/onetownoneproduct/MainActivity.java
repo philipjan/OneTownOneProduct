@@ -1,8 +1,10 @@
 package onetown.otop.onetownoneproduct;
 
 import android.app.Dialog;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -13,17 +15,24 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    LocationTracker tracker;
+    FloatingActionButton fab;
     GoogleMap gMap;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        tracker= new LocationTracker(MainActivity.this);
 
         if (isGooglePlayAvailable()) {
             Toast.makeText(this,"Successfully connected to Google Play Services",Toast.LENGTH_LONG).show();
             setContentView(R.layout.activity_main);
             initMap();
+            tracker.getUsersLocationByCriteria();
         }
+
+        fab= (FloatingActionButton)findViewById(R.id.fab_getLocation);
+
     }
 
     // Check if Google Play Services is Available
