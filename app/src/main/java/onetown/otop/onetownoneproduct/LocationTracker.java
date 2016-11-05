@@ -33,7 +33,7 @@ public class LocationTracker implements LocationListener {
     }
 
     // Getting users location by criteria
-  public void getUsersLocationByCriteria(GoogleMap googleMap) {
+  public Location getUsersLocationByCriteria(GoogleMap googleMap) {
 
             lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             criteria = new Criteria();
@@ -58,6 +58,7 @@ public class LocationTracker implements LocationListener {
             throw new NullPointerException("Null values are detected!");
         }
 
+      return loc;
     }
 
 
