@@ -52,7 +52,7 @@ public class LocationTracker implements LocationListener {
           googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude,longitude)).title("You are here"));
 
 
-            Log.d(TAG,"Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude));
+            Log.d("Via Criteria","Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude));
             Toast.makeText(context,"Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude),Toast.LENGTH_LONG).show();
         }catch (NullPointerException e) {
             throw new NullPointerException("Null values are detected!");
@@ -61,6 +61,50 @@ public class LocationTracker implements LocationListener {
       return loc;
     }
 
+    public Location getLocationByNetworkOrGps() {
+
+        boolean isGpsEnabled,isNetworkEnabled;
+
+
+        lm= (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        isGpsEnabled= lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        isNetworkEnabled= lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (!isGpsEnabled && !isNetworkEnabled) {
+            Toast.makeText(context,"GPS & Network is not enabled !",Toast.LENGTH_LONG).show();
+        }else {
+
+            // Using GPS Provider
+            if (isGpsEnabled) {
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
+
+                if (lm != null) {
+                    loc= lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                    if (loc != null) {
+                         latitude= loc.getLatitude();
+                         longitude= loc.getLongitude();
+                    }
+                }
+            }
+            // using network provider
+            if (isNetworkEnabled) {
+                lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+                if (lm != null) {
+                    loc=lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+                    if (loc != null) {
+                        latitude= loc.getLatitude();
+                        longitude= loc.getLongitude();
+                    }
+                }
+            }
+        }
+
+        Log.d("Via Network/GPS","Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude));
+        return loc;
+    }
 
 
     @Override

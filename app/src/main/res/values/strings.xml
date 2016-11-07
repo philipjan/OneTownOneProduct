@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">One Town, One Product</string>
+    <string name="editext_hint">Search Places</string>
 </resources>
