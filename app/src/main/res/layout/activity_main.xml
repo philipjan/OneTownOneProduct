@@ -46,6 +46,13 @@
                 android:layout_height="35dp"
                 android:onClick="onSearchPlaces"/>
 
+            <Spinner
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/spinner_circleRadius"
+                android:layout_alignTop="@+id/search_places"
+                android:layout_toRightOf="@+id/search_places"
+                android:layout_toEndOf="@+id/search_places" />
 
         </RelativeLayout>
 
@@ -72,4 +79,6 @@
         android:layout_marginBottom="17dp"
         app:backgroundTint="@color/toolbar_and_fab_color"
         android:elevation="4dp"/>
+
+
 </RelativeLayout>

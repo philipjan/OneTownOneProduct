@@ -17,12 +17,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.server.converter.StringToIntConverter;
-import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -32,10 +31,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import noman.googleplaces.NRPlaces;
+import noman.googleplaces.Place;
+import noman.googleplaces.PlaceType;
+import noman.googleplaces.PlacesException;
+import noman.googleplaces.PlacesListener;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PlacesListener {
     Location loc;
+    LatLng latLng;
+    LatLng placesLatLng;
     LocationTracker tracker;
     FloatingActionButton fab;
     GoogleMap gMap;
@@ -55,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                LatLng testLatlng= new LatLng(16.00222,123.23123123);
+
                 boolean isMethodByNetworkAndGpsIsEmpty= true;
 
                 if (isMethodByNetworkAndGpsIsEmpty) {
@@ -62,23 +70,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }else {
                     loc= tracker.getLocationByNetworkOrGps();
                 }
-                LatLng latLng= new LatLng(loc.getLatitude(),loc.getLongitude());
+                 latLng= new LatLng(loc.getLatitude(),loc.getLongitude());
                 Log.d("MainActivity",String.valueOf(loc.getLatitude()+" "+String.valueOf(loc.getLongitude())));
 
                 // Creating Circles in the marker (Your current location)
-                gMap.addCircle(new CircleOptions()
+                Circle circle = gMap.addCircle(new CircleOptions()
                         .center(new LatLng(loc.getLatitude(),loc.getLongitude()))
-                        .radius(50)
+                        .radius(1000)
                         .strokeColor(Color.DKGRAY)
                         .fillColor(Color.GREEN));
+
 
                 // Zoom Camera to the current location
                 gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,0));
 
-
+                checkIfInsideCircleRadius(circle,testLatlng);
+                tstNBRLib(latLng);
             }
         });
 
+    }
+
+    // Library for Getting Nearby Place using Google Place Web Service
+    public void tstNBRLib(LatLng latLng) {
+        new NRPlaces.Builder()
+                .listener(this)
+                .key("AIzaSyCzmZl2IFIAbv26FoDCdvfS1SOMsbkZS-4")
+                .latlng(latLng.latitude,latLng.longitude)
+                .radius(1000)
+                .type(PlaceType.PHARMACY)
+                .build()
+                .execute();
     }
 
     @Override
@@ -115,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         gMap= googleMap;
         gMap.setMyLocationEnabled(true);
+
+
 
     }
 
@@ -153,4 +177,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         String.valueOf(list.get(i).getFeatureName());
     }
 
+    // Check the latitude/longitude if its outside or inside the radius
+    public Boolean checkIfInsideCircleRadius(Circle circleCenterPoint, LatLng locationToCheck) {
+
+        float[] distance = new float[2];
+
+        Location.distanceBetween(circleCenterPoint.getCenter().latitude,circleCenterPoint.getCenter().longitude,
+                locationToCheck.latitude,locationToCheck.longitude,distance);
+        if (distance[0] > circleCenterPoint.getRadius()) {
+
+            Log.d("CircleRadius","Outside of the Radius");
+            return false;
+        }else {
+            Log.d("CircleRadius","Inside of the Radius");
+            return true;
+        }
+
+
+    }
+
+    // PlaceListeners Generated method
+    @Override
+    public void onPlacesFailure(PlacesException e) {
+
+    }
+
+    @Override
+    public void onPlacesStart() {
+        Log.d("onPlacesStart","starting");
+    }
+
+    // Data re printer here
+    @Override
+    public void onPlacesSuccess(final List<Place> places) {
+        Log.d("onPlacesSuccess","starting");
+        for(Place place: places) {
+            Log.d("Success",place.toString());
+        }
+
+    }
+
+    @Override
+    public void onPlacesFinished() {
+        Log.d("onPlacesFinished","starting");
+    }
 }

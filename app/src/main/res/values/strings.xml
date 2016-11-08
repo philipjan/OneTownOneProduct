@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">One Town, One Product</string>
     <string name="editext_hint">Search Places</string>
+    <string name="gmaps_key"> AIzaSyCzmZl2IFIAbv26FoDCdvfS1SOMsbkZS-4</string>
 </resources>
