@@ -2,6 +2,7 @@ package onetown.otop.onetownoneproduct;
 
 
 import android.content.Context;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,6 +14,8 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -51,6 +54,12 @@ public class LocationTracker implements LocationListener {
           // Setting markers
           googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude,longitude)).title("You are here"));
 
+          /** Adding Circle to the users location */
+          googleMap.addCircle(new CircleOptions()
+                  .center(new LatLng(latitude,longitude))
+                  .radius(1000)
+                  .strokeColor(Color.GRAY)
+                  .fillColor(Color.LTGRAY));
 
             Log.d("Via Criteria","Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude));
             Toast.makeText(context,"Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude),Toast.LENGTH_LONG).show();
@@ -109,14 +118,8 @@ public class LocationTracker implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-       try {
-           LatLng latLng= new LatLng(latitude,longitude);
-           CameraUpdate cameraUpdate= CameraUpdateFactory.newLatLngZoom(latLng,10);
-           map.animateCamera(cameraUpdate);
-           lm.removeUpdates(this);
-       }catch (Exception e) {
-           e.printStackTrace();
-       }
+
+        drawMarkerandCirclewhenLocationChanged(location);
 
     }
 
@@ -133,5 +136,28 @@ public class LocationTracker implements LocationListener {
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    public void drawMarkerandCirclewhenLocationChanged(Location location) {
+        try {
+            map.clear();
+            LatLng latLng= new LatLng(location.getLatitude(),location.getLongitude());
+
+
+            Circle c= map.addCircle(new CircleOptions()
+                    .radius(1000)
+                    .strokeColor(Color.GRAY)
+                    .fillColor(Color.LTGRAY));
+            c.setCenter(new LatLng(location.getLatitude(),location.getLongitude()));
+            map.addMarker(new MarkerOptions()
+            .position(latLng)
+            .title("My Location"));
+
+            CameraUpdate cameraUpdate= CameraUpdateFactory.newLatLngZoom(latLng,10);
+            map.animateCamera(cameraUpdate);
+            lm.removeUpdates(this);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
