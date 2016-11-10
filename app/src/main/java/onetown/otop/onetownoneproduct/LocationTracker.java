@@ -36,7 +36,7 @@ public class LocationTracker implements LocationListener {
     }
 
     // Getting users location by criteria
-  public Location getUsersLocationByCriteria(GoogleMap googleMap) {
+  public Location getUsersLocationByCriteria(GoogleMap  googleMap,int circleRadius) {
 
             lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             criteria = new Criteria();
@@ -54,18 +54,18 @@ public class LocationTracker implements LocationListener {
           // Setting markers
           googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude,longitude)).title("You are here"));
 
-          /** Adding Circle to the users location */
-          googleMap.addCircle(new CircleOptions()
-                  .center(new LatLng(latitude,longitude))
-                  .radius(1000)
-                  .strokeColor(Color.GRAY)
-                  .fillColor(Color.LTGRAY));
-
             Log.d("Via Criteria","Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude));
             Toast.makeText(context,"Latitude: "+String.valueOf(latitude)+" Longitude: "+String.valueOf(longitude),Toast.LENGTH_LONG).show();
         }catch (NullPointerException e) {
             throw new NullPointerException("Null values are detected!");
         }
+
+      /** Adding Circle to the users location */
+      googleMap.addCircle(new CircleOptions()
+              .center(new LatLng(latitude,longitude))
+              .radius(circleRadius)
+              .strokeColor(Color.GRAY)
+              .fillColor(Color.LTGRAY));
 
       return loc;
     }
@@ -85,7 +85,8 @@ public class LocationTracker implements LocationListener {
 
             // Using GPS Provider
             if (isGpsEnabled) {
-                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,5,this);
+
 
                 if (lm != null) {
                     loc= lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -98,7 +99,7 @@ public class LocationTracker implements LocationListener {
             }
             // using network provider
             if (isNetworkEnabled) {
-                lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,5000,5,this);
 
                 if (lm != null) {
                     loc=lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -118,8 +119,14 @@ public class LocationTracker implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+      /**  map.clear();
+        map.addCircle(new CircleOptions()
+        .center(new LatLng(location.getLatitude(),location.getLongitude()))
+        .radius(1000)
+        .strokeColor(Color.GRAY)
+        .fillColor(Color.LTGRAY));
+        lm.removeUpdates(this); */
 
-        drawMarkerandCirclewhenLocationChanged(location);
 
     }
 

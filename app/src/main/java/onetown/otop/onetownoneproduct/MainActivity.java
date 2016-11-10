@@ -12,7 +12,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,6 +24,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -43,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationTracker tracker;
     FloatingActionButton fab;
     GoogleMap gMap;
+    Spinner radiusSpinner;
+    int radiusValue;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +63,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             initMap();
         }
 
+        radiusSpinner= (Spinner)findViewById(R.id.spinner_circleRadius);
+        final String[] values= getResources().getStringArray(R.array.distancein_km);
+        ArrayAdapter<String> adapter= new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,values);
+        radiusSpinner.setAdapter(adapter);
+        radiusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+               radiusValue= Integer.valueOf(values[position]);
+                Log.d("onItemSelected",String.valueOf(radiusValue));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                radiusValue=5;
+            }
+        });
+
       // Get Users location when clicked
         fab= (FloatingActionButton)findViewById(R.id.fab_getLocation);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -65,20 +89,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 boolean isMethodByNetworkAndGpsIsEmpty= true;
 
                 if (isMethodByNetworkAndGpsIsEmpty) {
-                    loc=tracker.getUsersLocationByCriteria(gMap);
+                    loc=tracker.getUsersLocationByCriteria(gMap,radiusValue);
                 }else {
                     loc= tracker.getLocationByNetworkOrGps();
                 }
                  latLng= new LatLng(loc.getLatitude(),loc.getLongitude());
                 Log.d("MainActivity",String.valueOf(loc.getLatitude()+" "+String.valueOf(loc.getLongitude())));
-
-                /** Creating Circles in the marker (Your current location)
-                gMap.addCircle(new CircleOptions()
-                        .center(new LatLng(loc.getLatitude(),loc.getLongitude()))
-                        .radius(1000)
-                        .strokeColor(Color.DKGRAY)
-                        .fillColor(Color.GREEN)); */
-
 
                 // Zoom Camera to the current location
                 gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,13));
@@ -99,8 +115,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .listener(MainActivity.this)
                         .key("AIzaSyCzmZl2IFIAbv26FoDCdvfS1SOMsbkZS-4")
                         .latlng(latLng1.latitude,latLng1.longitude)
-                        .radius(1000)
-                        .type(PlaceType.GAS_STATION)
+                        .radius(radiusValue)
+                        .type(PlaceType.ART_GALLERY)
+                        .type(PlaceType.MUSEUM)
+                        .type(PlaceType.RESTAURANT)
                         .build()
                         .execute();
 
@@ -110,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Thread t= new Thread(r);
         t.start();
-
     }
 
     @Override
