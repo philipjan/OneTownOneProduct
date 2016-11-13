@@ -1,12 +1,9 @@
-package onetown.otop.onetownoneproduct;
+package onetown.otop.onetownoneproduct.Activity;
 
 import android.app.Dialog;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,9 +21,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -35,33 +29,41 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import noman.googleplaces.NRPlaces;
-import noman.googleplaces.Place;
-import noman.googleplaces.PlaceType;
-import noman.googleplaces.PlacesException;
-import noman.googleplaces.PlacesListener;
+import onetown.otop.onetownoneproduct.Objects.LocationTracker;
+import onetown.otop.onetownoneproduct.R;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PlacesListener{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback{
     Location loc;
     LatLng latLng;
     LocationTracker tracker;
     FloatingActionButton fab;
     GoogleMap gMap;
     Spinner radiusSpinner;
-    int radiusValue;
+    double radiusValue;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        tracker= new LocationTracker(MainActivity.this);
-
-
-
+        tracker= new LocationTracker(this,gMap);
         if (isGooglePlayAvailable()) {
             Toast.makeText(this,"Successfully connected to Google Play Services",Toast.LENGTH_LONG).show();
             setContentView(R.layout.activity_main);
             initMap();
         }
+        // Get Users location when clicked
+        fab= (FloatingActionButton)findViewById(R.id.fab_getLocation);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loc= tracker.getUsersLocationByCriteria(gMap,radiusValue);
+                latLng= new LatLng(loc.getLatitude(),loc.getLongitude());
+                Log.d("MainActivity",String.valueOf(loc.getLatitude()+" "+String.valueOf(loc.getLongitude())));
+                // Zoom Camera to the current location
+                gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,13));
+
+            }
+        });
 
         radiusSpinner= (Spinner)findViewById(R.id.spinner_circleRadius);
         final String[] values= getResources().getStringArray(R.array.distancein_km);
@@ -70,66 +72,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         radiusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-               radiusValue= Integer.valueOf(values[position]);
-                Log.d("onItemSelected",String.valueOf(radiusValue));
+
+                radiusValue= Integer.valueOf(values[position]);
+                Log.d("onItemSelected",String.valueOf(radiusValue)+String.valueOf(loc));
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                radiusValue=5;
-            }
-        });
-
-      // Get Users location when clicked
-        fab= (FloatingActionButton)findViewById(R.id.fab_getLocation);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                boolean isMethodByNetworkAndGpsIsEmpty= true;
-
-                if (isMethodByNetworkAndGpsIsEmpty) {
-                    loc=tracker.getUsersLocationByCriteria(gMap,radiusValue);
-                }else {
-                    loc= tracker.getLocationByNetworkOrGps();
-                }
-                 latLng= new LatLng(loc.getLatitude(),loc.getLongitude());
-                Log.d("MainActivity",String.valueOf(loc.getLatitude()+" "+String.valueOf(loc.getLongitude())));
-
-                // Zoom Camera to the current location
-                gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,13));
-
-                tstNBRLib(latLng);
 
             }
         });
-
     }
-
-    //Library for Getting Nearby Place using Google Place Web Service
-    public void tstNBRLib(final LatLng latLng1) {
-        Runnable r= new Runnable() {
-            @Override
-            public void run() {
-                new NRPlaces.Builder()
-                        .listener(MainActivity.this)
-                        .key("AIzaSyCzmZl2IFIAbv26FoDCdvfS1SOMsbkZS-4")
-                        .latlng(latLng1.latitude,latLng1.longitude)
-                        .radius(radiusValue)
-                        .type(PlaceType.ART_GALLERY)
-                        .type(PlaceType.MUSEUM)
-                        .type(PlaceType.RESTAURANT)
-                        .build()
-                        .execute();
-
-            }
-
-        };
-
-        Thread t= new Thread(r);
-        t.start();
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -155,24 +108,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void initMap() {
         MapFragment mapFragment= (MapFragment) getFragmentManager().findFragmentById(R.id.fragment_maps);
         mapFragment.getMapAsync(this);
-
-
     }
 
     // Interface methods
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap= googleMap;
-        gMap.setMyLocationEnabled(true);
-
+        //gMap.setMyLocationEnabled(true);
+        gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(10.8417947,123.057734),5));
     }
 
     public void onSearchPlaces(View view) {
         List<Address> addressList=new ArrayList<Address>();
-
         EditText placesInput= (EditText)findViewById(R.id.textInput_places);
         String location= placesInput.getText().toString();
-
         if (location != null || location != "" || !location.equals("")) {
             Geocoder geocoder = new Geocoder(this);
             try {
@@ -180,17 +129,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             for (int i = 0; i < addressList.size(); i++) {
                 LatLng latLng = new LatLng(addressList.get(i).getLatitude(), addressList.get(i).getLongitude());
                 createMarker(latLng,addressList,i);
             }
-
         }
     }
     // Creation of markers
     public Marker createMarker(LatLng latLng,List<Address> addresses,int i) {
-
         return gMap.addMarker(new MarkerOptions()
         .position(latLng)
         .title(toString(addresses,i)));
@@ -202,48 +148,4 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         String.valueOf(list.get(i).getFeatureName());
     }
 
-
-    // PlaceListeners Generated method
-    @Override
-    public void onPlacesFailure(PlacesException e) {
-        Log.d("onPlaceFailure",e.getMessage());
-    }
-
-    @Override
-    public void onPlacesStart() {
-        Log.d("onPlacesStart","starting");
-    }
-
-    // Data re printer here
-    @Override
-    public void onPlacesSuccess(final List<Place> places) {
-
-        Log.d("onPlacesSuccess","starting");
-
-        Handler handler= new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                LatLng placeLatlng;
-
-                for(Place place: places) {
-
-                    placeLatlng=new LatLng(place.getLatitude(),place.getLongitude());
-                    gMap.addMarker(new MarkerOptions()
-                            .position(placeLatlng)
-                            .title(place.getName())
-                            .snippet(place.getVicinity()));
-                    Log.d("Success",place.toString());
-                }
-            }
-        });
-
-
-
-    }
-
-    @Override
-    public void onPlacesFinished() {
-        Log.d("onPlacesFinished","starting");
-    }
 }
