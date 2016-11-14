@@ -46,14 +46,6 @@
                 android:layout_height="35dp"
                 android:onClick="onSearchPlaces"/>
 
-            <Spinner
-                android:layout_width="70dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/spinner_circleRadius"
-                android:layout_alignTop="@+id/search_places"
-                android:layout_toRightOf="@+id/search_places"
-                android:layout_toEndOf="@+id/search_places" />
-
         </RelativeLayout>
 
     </android.support.v7.widget.Toolbar>
@@ -71,14 +63,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@mipmap/ic_my_location_white_48dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="18dp"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="18dp"
-        android:layout_marginBottom="17dp"
+        android:layout_marginBottom="12dp"
         app:backgroundTint="@color/toolbar_and_fab_color"
-        android:elevation="4dp"/>
+        android:elevation="4dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp" />
 
 
 </RelativeLayout>

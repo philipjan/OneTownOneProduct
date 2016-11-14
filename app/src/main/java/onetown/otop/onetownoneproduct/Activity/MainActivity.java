@@ -39,8 +39,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationTracker tracker;
     FloatingActionButton fab;
     GoogleMap gMap;
-    Spinner radiusSpinner;
     double radiusValue;
+    Marker myCurrentLocationMarker;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +51,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this,"Successfully connected to Google Play Services",Toast.LENGTH_LONG).show();
             setContentView(R.layout.activity_main);
             initMap();
+
         }
+
         // Get Users location when clicked
         fab= (FloatingActionButton)findViewById(R.id.fab_getLocation);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -60,28 +63,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 latLng= new LatLng(loc.getLatitude(),loc.getLongitude());
                 Log.d("MainActivity",String.valueOf(loc.getLatitude()+" "+String.valueOf(loc.getLongitude())));
                 // Zoom Camera to the current location
+                myCurrentLocationMarker= gMap.addMarker(new MarkerOptions()
+                                                        .position(latLng)
+                                                        .title("My Current Location")
+                                                        .snippet("This is a sample snippet"));
+                myCurrentLocationMarker.showInfoWindow();
                 gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,13));
-
+                // On marker click listener
+                gMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        Log.i("onMarkerClick","Successfull, Title: "+marker.getTitle());
+                        return false;
+                    }
+                });
             }
         });
 
-        radiusSpinner= (Spinner)findViewById(R.id.spinner_circleRadius);
-        final String[] values= getResources().getStringArray(R.array.distancein_km);
-        ArrayAdapter<String> adapter= new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,values);
-        radiusSpinner.setAdapter(adapter);
-        radiusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                radiusValue= Integer.valueOf(values[position]);
-                Log.d("onItemSelected",String.valueOf(radiusValue)+String.valueOf(loc));
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
     }
     @Override
     protected void onResume() {
@@ -114,8 +113,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap= googleMap;
-        //gMap.setMyLocationEnabled(true);
         gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(10.8417947,123.057734),5));
+        gMap.getUiSettings().setZoomControlsEnabled(true);
     }
 
     public void onSearchPlaces(View view) {
@@ -131,15 +130,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             for (int i = 0; i < addressList.size(); i++) {
                 LatLng latLng = new LatLng(addressList.get(i).getLatitude(), addressList.get(i).getLongitude());
-                createMarker(latLng,addressList,i);
+                createMarkerInSearch(latLng,addressList,i);
             }
         }
     }
     // Creation of markers
-    public Marker createMarker(LatLng latLng,List<Address> addresses,int i) {
+    public Marker createMarkerInSearch(LatLng latLng,List<Address> addresses,int i) {
         return gMap.addMarker(new MarkerOptions()
         .position(latLng)
         .title(toString(addresses,i)));
+
     }
 
     public String toString(List<Address> list,int i) {
@@ -147,5 +147,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String.valueOf(list.get(i).getAdminArea())+" "+
                         String.valueOf(list.get(i).getFeatureName());
     }
+
 
 }
